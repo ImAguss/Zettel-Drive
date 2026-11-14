@@ -1,13 +1,21 @@
 [project]
-name = "pythonproject"
+name = "Zettel-Drive"
 version = "0.1.0"
-description = "Add your description here"
+description = "Sincronizacion de Zettelkasten y demas archivos entre distintos dispositivos usando google drive como intermediario"
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "google-api-python-client>=2.100.0",
+    "google-auth-oauthlib>=1.2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
 
 [project.scripts]
-pythonproject = "pythonproject:main"
+zettel-drive = "zettel_drive.cli:main"
 
 [build-system]
 requires = ["uv_build>=0.13.7,<0.14.0"]
