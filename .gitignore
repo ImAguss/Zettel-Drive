@@ -5,6 +5,14 @@ build/
 dist/
 wheels/
 *.egg-info
+.docs-dev/
+.pytest_cache/
+
+# Secretos y estado local por máquina
+credentials.json
+token.json
+config.json
+state.json
 
 # Virtual environments
-.venv
+.venv/
