@@ -11,8 +11,8 @@ Sincronización unidireccional (`PC -> Google Drive -> Teléfono / Termux`) medi
 ## Fase 1 — Operaciones de disco (`archive.py`) [En curso]
 - [x] Hashing determinista `sha256` del árbol de archivos (orden estable, ruta relativa + contenido, exclusiones).
 - [x] Empaquetado a `.zip` (`ZIP_DEFLATED`) aplicando reglas de exclusión.
-- [ ] Extracción segura mediante *staging + swap*, prevención de *Zip Slip* y limpieza ante fallos.
-- [ ] Pruebas unitarias offline en `tests/test_archive.py` con `pytest`.
+- [x] Extracción segura mediante *staging + swap*, prevención de *Zip Slip* y limpieza ante fallos.
+- [x] Pruebas unitarias offline en `tests/test_archive.py` con `pytest`.
 
 ## Fase 2 — Configuración y estado local (`config.py`, `state.py`)
 - [ ] Esquema y validación de `config.json` por dispositivo (`local_path`, `file_id`, `excludes`, `drive_folder_id` opcional).
