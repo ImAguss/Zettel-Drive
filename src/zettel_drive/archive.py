@@ -1,16 +1,18 @@
 import hashlib
+import os
 import shutil
 import stat
 import zipfile
-import os
-
-from zipfile import BadZipFile
-from pathlib import Path, PurePosixPath
+from collections.abc import Generator, Sequence
 from fnmatch import fnmatchcase
-from typing import Sequence, Any, Generator
+from pathlib import Path, PurePosixPath
+from typing import Any
+from zipfile import BadZipFile
 
 
-def deterministic_hashing_from_tree(folder: Path, excludes: Sequence[str] | None = None) -> str:
+def deterministic_hashing_from_tree(
+    folder: Path, excludes: Sequence[str] | None = None
+) -> str:
     """Calcula un SHA-256 determinista del árbol de archivos de `folder`.
 
     Asume: `folder` es un directorio existente (symlinks y patrones en `excludes` se omiten).
@@ -22,18 +24,22 @@ def deterministic_hashing_from_tree(folder: Path, excludes: Sequence[str] | None
 
     for archive, rel_posix in _excludes_helper(folder, excludes):
         with open(archive, "rb") as f:
-            digest = hashlib.file_digest(f, 'sha-256').digest()
-            hasher.update(rel_posix.encode('utf-8') + b'\x00' + digest)
+            digest = hashlib.file_digest(f, "sha-256").digest()
+            hasher.update(rel_posix.encode("utf-8") + b"\x00" + digest)
 
     return hasher.hexdigest()
 
 
-def hash_comparator(folder: Path, hash_to_compare: str, excludes: Sequence[str] | None = None) -> bool:
+def hash_comparator(
+    folder: Path, hash_to_compare: str, excludes: Sequence[str] | None = None
+) -> bool:
     local_hash = deterministic_hashing_from_tree(folder, excludes)
     return local_hash == hash_to_compare
 
 
-def zip_file_compress(folder: Path, path_to_compress: Path, excludes: Sequence[str] | None = None) -> None:
+def zip_file_compress(
+    folder: Path, path_to_compress: Path, excludes: Sequence[str] | None = None
+) -> None:
     """Empaqueta el árbol de `folder` en un `.zip` con rutas POSIX relativas.
 
     Asume: `folder` es un directorio existente (omite symlinks y `excludes`; no empaqueta carpetas vacías).
@@ -45,9 +51,12 @@ def zip_file_compress(folder: Path, path_to_compress: Path, excludes: Sequence[s
 
     path_to_compress.parent.mkdir(parents=True, exist_ok=True)
 
-    with zipfile.ZipFile(path_to_compress, 'w', compression=zipfile.ZIP_DEFLATED) as zip_ref:
+    with zipfile.ZipFile(
+        path_to_compress, "w", compression=zipfile.ZIP_DEFLATED
+    ) as zip_ref:
         for archive, rel_posix in _excludes_helper(folder, excludes):
             zip_ref.write(archive, arcname=rel_posix)
+
 
 def _is_excluded(excludes: Sequence[str], rel_path: Path) -> bool:
     if excludes is not None:
@@ -55,15 +64,17 @@ def _is_excluded(excludes: Sequence[str], rel_path: Path) -> bool:
             pat = exclude.strip("/")
             if not pat:
                 continue
-            if (
-                    fnmatchcase(rel_path.as_posix(), pat)
-                    or any(fnmatchcase(part, pat) for part in rel_path.parts)
+            if fnmatchcase(rel_path.as_posix(), pat) or any(
+                fnmatchcase(part, pat) for part in rel_path.parts
             ):
                 return True
 
     return False
 
-def _excludes_helper(folder: Path, excludes: Sequence[str] | None = None) -> Generator[tuple[Path, str], Any, None]:
+
+def _excludes_helper(
+    folder: Path, excludes: Sequence[str] | None = None
+) -> Generator[tuple[Path, str], Any]:
     if excludes is None:
         excludes = []
 
@@ -81,15 +92,16 @@ def _excludes_helper(folder: Path, excludes: Sequence[str] | None = None) -> Gen
             clean_dirnames.append(d)
         dirnames[:] = clean_dirnames
         for f in sorted(filenames):
-            file = (dirpath / f)
+            file = dirpath / f
             relative = file.relative_to(folder).as_posix()
 
             if (
-                    not file.is_symlink()
-                    and file.is_file()
-                    and not _is_excluded(excludes, file.relative_to(folder))
+                not file.is_symlink()
+                and file.is_file()
+                and not _is_excluded(excludes, file.relative_to(folder))
             ):
                 yield file, relative
+
 
 def _recover_orphan_state(dest: Path, staging: Path, bak: Path) -> None:
     if staging.exists():
